@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_PATH = '/usr/bin/docker' // Adjust path if necessary
-        PATH = "${DOCKER_PATH}:${env.PATH}" // Add Docker to PATH
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -16,11 +11,10 @@ pipeline {
         stage('Verify Docker') {
             steps {
                 script {
-                    def dockerVersion = sh(script: 'docker --version', returnStdout: true).trim()
-                    if (dockerVersion) {
-                        echo "Docker is installed: ${dockerVersion}"
-                    } else {
-                        error "Docker is not installed or not accessible"
+                    try {
+                        sh 'docker --version'
+                    } catch (Exception e) {
+                        error "Docker is not installed or not accessible. Please install Docker and ensure it's running."
                     }
                 }
             }
@@ -28,33 +22,44 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t my-flask-app .'
+                script {
+                    try {
+                        sh 'docker build -t my-flask-app .'
+                    } catch (Exception e) {
+                        error "Failed to build Docker image: ${e.message}"
+                    }
+                }
             }
         }
 
         stage('Run Tests in Docker') {
             steps {
-                sh 'docker run my-flask-app pytest'
+                script {
+                    try {
+                        sh 'docker run my-flask-app pytest'
+                    } catch (Exception e) {
+                        error "Failed to run tests in Docker: ${e.message}"
+                    }
+                }
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                    sh 'docker tag my-flask-app <dockerhub-username>/my-flask-app:latest'
-                    sh 'docker push <dockerhub-username>/my-flask-app:latest'
-                }
+                echo 'Push to Docker registry (implement this step later)'
             }
         }
     }
 
     post {
         always {
-            echo 'Cleaning up Docker...'
-            sh 'docker ps -q --filter ancestor=my-flask-app | xargs -r docker stop'
-            sh 'docker ps -a -q --filter ancestor=my-flask-app | xargs -r docker rm'
-            sh 'docker rmi my-flask-app'
+            script {
+                try {
+                    sh 'docker rmi my-flask-app'
+                } catch (Exception e) {
+                    echo "Failed to remove Docker image: ${e.message}"
+                }
+            }
         }
     }
 }
