@@ -1,6 +1,3 @@
-from app import app, db
-
-
 def test_create_todo(client):
     response = client.post('/todos', json={'title': 'Test Todo'})
     assert response.status_code == 201
