@@ -16,10 +16,9 @@ def test_get_todos(client):
 def test_delete_todo(client):
     response = client.post('/todos', json={'title': 'Todo to delete'})
     todo_id = response.json['id']
-    
+
     response = client.delete(f'/todos/{todo_id}')
     assert response.status_code == 204
-    
+
     response = client.get('/todos')
     assert len(response.json) == 0
-    

@@ -1,6 +1,6 @@
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from config import Config
+from flask import Flask, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -13,32 +13,45 @@ class Todo(db.Model):
     completed = db.Column(db.Boolean, default=False)
 
 
-@app.route('/todos', methods=['POST'])
+@app.route("/todos", methods=["POST"])
 def create_todo():
     data = request.json
-    new_todo = Todo(title=data['title'])
+    new_todo = Todo(title=data["title"])
     db.session.add(new_todo)
     db.session.commit()
-    print('no print')
-    return jsonify({"id": new_todo.id, "title": new_todo.title, "completed": new_todo.completed}), 201
+    print("no print")
+    return (
+        jsonify(
+            {
+                "id": new_todo.id,
+                "title": new_todo.title,
+                "completed": new_todo.completed,
+            }
+        ),
+        201,
+    )
 
 
-@app.route('/todos', methods=['GET'])
+@app.route("/todos", methods=["GET"])
 def get_todos():
     todos = Todo.query.all()
-    return jsonify([{"id": todo.id, "title": todo.title, "completed": todo.completed} for todo in todos])
+    return jsonify(
+        [
+            {"id": todo.id, "title": todo.title, "completed": todo.completed}
+            for todo in todos
+        ]
+    )
 
 
-@app.route('/todos/<int:todo_id>', methods=['DELETE'])
+@app.route("/todos/<int:todo_id>", methods=["DELETE"])
 def delete_todo(todo_id):
     todo = Todo.query.get_or_404(todo_id)
     db.session.delete(todo)
     db.session.commit()
-    return '', 204
+    return "", 204
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-    
