@@ -23,3 +23,4 @@ def init_database(test_client):
     yield
     db.session.remove()
     db.drop_all()
+    

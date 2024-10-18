@@ -22,3 +22,4 @@ def test_delete_todo(client):
     
     response = client.get('/todos')
     assert len(response.json) == 0
+    
