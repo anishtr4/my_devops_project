@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:dind'
+            args '-v /var/run/docker.sock:/var/run/docker.sock -e DOCKER_HOST=unix:///var/run/docker.sock'
+        }
+    }
 
     stages {
         stage('Checkout') {
@@ -10,13 +15,8 @@ pipeline {
 
         stage('Verify Docker') {
             steps {
-                script {
-                    try {
-                        sh 'docker --version'
-                    } catch (Exception e) {
-                        error "Docker is not installed or not accessible. Please install Docker and ensure it's running."
-                    }
-                }
+                sh 'docker --version'
+                sh 'docker info'
             }
         }
 
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'docker run my-flask-app pytest'
+                        sh 'docker run --rm my-flask-app pytest'
                     } catch (Exception e) {
                         error "Failed to run tests in Docker: ${e.message}"
                     }
