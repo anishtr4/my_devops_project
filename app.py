@@ -17,6 +17,7 @@ def create_todo():
     new_todo = Todo(title=data['title'])
     db.session.add(new_todo)
     db.session.commit()
+    print('no print');
     return jsonify({"id": new_todo.id, "title": new_todo.title, "completed": new_todo.completed}), 201
 
 @app.route('/todos', methods=['GET'])
