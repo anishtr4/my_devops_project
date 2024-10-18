@@ -25,6 +25,12 @@ def get_todos():
     todos = Todo.query.all()
     return jsonify([{"id": todo.id, "title": todo.title, "completed": todo.completed} for todo in todos])
 
+@app.route('/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    todo = Todo.query.get_or_404(todo_id)
+    db.session.delete(todo)
+    db.session.commit()
+    return '', 204
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
