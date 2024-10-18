@@ -7,42 +7,29 @@ pipeline {
                 checkout scm
             }
         }
-        
-        stage('Setup Python') {
+
+        stage('Build Docker Image') {
             steps {
-                sh 'python3 -m venv venv'
-                sh 'source venv/bin/activate'
+                sh 'docker build -t my-flask-app .'
             }
         }
-        
-        stage('Install dependencies') {
+
+        stage('Run Tests in Docker') {
             steps {
-                sh 'source venv/bin/activate && pip install --upgrade pip'
-                sh 'source venv/bin/activate && pip install -r requirements.txt'
-                sh 'source venv/bin/activate && pip install pytest flake8'
+                sh 'docker run my-flask-app pytest'
             }
         }
-        
-        stage('Run tests') {
+
+        stage('Push Docker Image') {
             steps {
-                sh 'source venv/bin/activate && pytest'
+                echo 'Push to Docker registry (implement this step later)'
             }
         }
-        
-        stage('Lint') {
-            steps {
-                sh 'source venv/bin/activate && flake8 app.py tests/'
-            }
-        }
-        
-        stage('Deploy') {
-            when {
-                branch 'main'
-            }
-            steps {
-                echo 'Deploying to production...'
-                // Add your deployment steps here
-            }
+    }
+
+    post {
+        always {
+            sh 'docker rmi my-flask-app'
         }
     }
 }
